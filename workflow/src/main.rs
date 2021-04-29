@@ -8,9 +8,10 @@ mod delusion;
 mod transform;
 mod shader;
 
-use crate::primitives::*;
+use crate::primitives::Triangle;
 use crate::transform::*;
-use crate::objcracker::*;
+use crate::objcracker::Objcracker;
+use crate::shader::ShaderPayload;
 
 use std::{
     cmp::min, mem, env,
@@ -27,8 +28,8 @@ use na::{Vector2, Vector3, Matrix, Matrix4, Vector4};
 
 static TITLE: &str = "Delusion Canvas";
 
-static WIDTH:  usize = 500;
-static HEIGHT: usize = 500;
+static WIDTH:  usize = 600;
+static HEIGHT: usize = 600;
 
 static UP    : Vector3<f32> = Vector3::new(0.0,1.0,0.0);
 static ORIGIN: Vector3<f32> = Vector3::new(0.0,0.0,0.0);
@@ -49,28 +50,42 @@ fn main() {
 
     /////////////////////////////////////////////////////////////////////////////////
 
-    let mut light: Vector3<f32> = Vector3::new(1.0,-1.0,1.0);
+    let mut light: Vector3<f32> = Vector3::new(1.0,-1.0,1.0).normalize();
     let mut eye  : Vector3<f32> = Vector3::new(1.0,1.0,3.0);
 
     /////////////////////////////////////////////////////////////////////////////////
 
     let mut d = delusion::Delusion::new(WIDTH, HEIGHT);
-    d.lookat(&eye,&UP,&ORIGIN);
-    d.viewport(0.85);
+    d.viewport(0.75);
     d.projection(-1.0/(eye-ORIGIN).norm());
 
     /////////////////////////////////////////////////////////////////////////////////
 
     let mut window = Window::new(TITLE, WIDTH, HEIGHT, WindowOptions::default()).unwrap();
     while window.is_open() && !window.is_key_down(Key::Escape) {
+
         let frame_start_time = SystemTime::now();
+
+        /////////////////////////////////////////////////////////////////////////////////
 
         d.clear_frame_buff(CLEAR_COLOR);
         d.clear_depth_buff();
 
-        for i in 0..model.nfaces() {
+        d.lookat(&eye,&UP,&ORIGIN);
 
+        /* TODO 看看能不能移出去 */
+        let mut shader = shader::GouraudShader::new();
+
+        for i in 0..model.nfaces() {
+            let mut screen_coords: Vector3<Vector4<f32>> = Default::default();
+            for j in 0..3 {
+                screen_coords[j] = shader.vertex(i,j,&light,&model,&d);
+                //println!("{:?}", screen_coords[j]);
+            }
+            d.rasterize_tri(&screen_coords, &mut shader, &model);
         }
+
+        /////////////////////////////////////////////////////////////////////////////////
 
         let frame_time = SystemTime::now()
             .duration_since(frame_start_time)

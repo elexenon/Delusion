@@ -33,6 +33,11 @@ pub fn vec2f_to_vec2i(v: &Vector2<f32>) -> Vector2<i32> {
 }
 
 #[inline(always)]
+pub fn cross_product(v1: &Vector3<f32>,v2: &Vector3<f32>) -> Vector3<f32> {
+    Vector3::new(v1.y*v2.z - v1.z*v2.y, v1.z*v2.x - v1.x*v2.z, v1.x*v2.y - v1.y*v2.x)
+}
+
+#[inline(always)]
 pub fn vec2f_to_vec2u(v: &Vector2<f32>) -> Vector2<u32> {
     Vector2::new(v.x as u32, v.y as u32)
 }

@@ -129,14 +129,13 @@ impl Objcracker {
         self.verts[vt_idx]
     }
 
-    // 直接获取obj源法向量
-    pub fn calc_normal(&self, iface: usize, inorm: usize) -> Vector3<f32> {
-        let vn_idx = self.faces[iface][inorm][2] as usize;
-        self.normals[vn_idx].normalize()
-    }
-
     pub fn calc_uv(&self, iface: usize, ivert: usize) -> Vector2<f32> {
         self.uvs[self.faces[iface][ivert][1]]
+    }
+
+    pub fn calc_normal(&self, iface: usize, ivert: usize) -> Vector3<f32> {
+        let vn_idx = self.faces[iface][ivert][2] as usize;
+        self.normals[vn_idx].normalize()
     }
 
     pub fn face(&self, idx: usize) -> Vector3<usize> {

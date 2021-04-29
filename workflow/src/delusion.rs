@@ -3,10 +3,26 @@ use nalgebra::{
 };
 use crate::primitives;
 use crate::Objcracker;
+use crate::shader::ShaderPayload;
+use crate::transform::cross_product;
 
 fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
     let (r, g, b) = (r as u32, g as u32, b as u32);
     (r << 16) | (g << 8) | b
+}
+
+fn barycentric(a:&Vector4<f32>,b:&Vector4<f32>,c:&Vector4<f32>,x:usize,y:usize) -> Vector3<f32> {
+    let v1: Vector3<f32> = Vector3::new(c.x-a.x,b.x-a.x,a.x-(x as f32));
+    let v2: Vector3<f32> = Vector3::new(c.y-a.y,b.y-a.y,a.y-(y as f32));
+    let u: Vector3<f32> = v1.cross(&v2);
+
+    // println!("{} - {} = {}",a.x,x as f32,a.x-(x as f32));
+    // println!("{} - {} = {}",a.y,y as f32,a.y-(y as f32));
+
+    if u[2].abs() > 1e-2 {
+        return Vector3::new(1.0-(u.x+u.y)/u.z, u.y/u.z, u.x/u.z);
+    }
+    Vector3::new(-1.0,1.0,1.0)
 }
 
 pub struct Delusion {
@@ -29,6 +45,34 @@ impl Delusion {
             projection: Matrix4::<f32>::identity(),
             f_buffer: vec![0;width*height],
             d_buffer: vec![i32::MIN;width*height],
+        }
+    }
+
+    pub fn rasterize_tri<T: ShaderPayload>(&mut self, pts: &Vector3<Vector4<f32>>,
+                                           shader: &mut T, model: &Objcracker) {
+        let mut bboxmin:[f32;2] = [f32::MAX, f32::MAX];
+        let mut bboxmax:[f32;2] = [f32::MIN, f32::MIN];
+        for i in 0..3 {
+            for j in 0..2 {
+                bboxmin[j] = bboxmin[j].min(pts[i][j]/pts[i][3]);
+                bboxmax[j] = bboxmax[j].max(pts[i][j]/pts[i][3]);
+            }
+        }
+        // println!("{:?}",bboxmin);
+        // println!("{:?}",bboxmax);
+        for x in bboxmin[0].ceil() as usize..bboxmax[0].ceil() as usize {
+            for y in bboxmin[1].ceil() as usize..bboxmax[1].ceil() as usize {
+                let bar = barycentric(&(pts[0]/pts[0][3]),&(pts[1]/pts[1][3]),
+                    &(pts[2]/pts[2][3]),x, y);
+                let z: f32 = pts[0][2]*bar.x + pts[1][2]*bar.y + pts[2][2]*bar.z;
+                let w: f32 = pts[0][3]*bar.x + pts[1][3]*bar.y + pts[2][3]*bar.z;
+                let dep: i32 = ((z/w+0.5) as i32).min(255).max(0);
+                if bar.x<0.0 || bar.y<0.0 || bar.z<0.0 || self.get_depth(x,y)>dep {
+                    continue;
+                }
+                self.set_depth(x,y,dep);
+                self.set_color(x,y,&shader.fragment(&bar,&model));
+            }
         }
     }
 
@@ -71,7 +115,7 @@ impl Delusion {
         self.d_buffer.fill(i32::MIN);
     }
 
-    pub fn set_color(&mut self, x: usize, y: usize, color: Vector3<f32>) {
+    pub fn set_color(&mut self, x: usize, y: usize, color: &Vector3<f32>) {
         if x >= self.width || y >= self.height {
             return;
         }

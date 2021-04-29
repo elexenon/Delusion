@@ -1164,6 +1164,7 @@ dependencies = [
  "minifb",
  "nalgebra",
  "objcracker",
+ "rand",
 ]
 
 [[package]]

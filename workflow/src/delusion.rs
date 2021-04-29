@@ -58,20 +58,18 @@ impl Delusion {
                 bboxmax[j] = bboxmax[j].max(pts[i][j]/pts[i][3]);
             }
         }
-        // println!("{:?}",bboxmin);
-        // println!("{:?}",bboxmax);
         for x in bboxmin[0].ceil() as usize..bboxmax[0].ceil() as usize {
             for y in bboxmin[1].ceil() as usize..bboxmax[1].ceil() as usize {
-                let bar = barycentric(&(pts[0]/pts[0][3]),&(pts[1]/pts[1][3]),
+                let weights = barycentric(&(pts[0]/pts[0][3]),&(pts[1]/pts[1][3]),
                     &(pts[2]/pts[2][3]),x, y);
-                let z: f32 = pts[0][2]*bar.x + pts[1][2]*bar.y + pts[2][2]*bar.z;
-                let w: f32 = pts[0][3]*bar.x + pts[1][3]*bar.y + pts[2][3]*bar.z;
+                let z: f32 = pts[0][2]*weights.x + pts[1][2]*weights.y + pts[2][2]*weights.z;
+                let w: f32 = pts[0][3]*weights.x + pts[1][3]*weights.y + pts[2][3]*weights.z;
                 let dep: i32 = ((z/w+0.5) as i32).min(255).max(0);
-                if bar.x<0.0 || bar.y<0.0 || bar.z<0.0 || self.get_depth(x,y)>dep {
+                if weights.x<0.0 || weights.y<0.0 || weights.z<0.0 || self.get_depth(x,y)>dep {
                     continue;
                 }
                 self.set_depth(x,y,dep);
-                self.set_color(x,y,&shader.fragment(&bar,&model));
+                self.set_color(x,y,&shader.fragment(&weights,&model));
             }
         }
     }
@@ -107,7 +105,7 @@ impl Delusion {
         }
     }
 
-    pub fn clear_frame_buff(&mut self, color: Vector3<f32>) {
+    pub fn clear_frame_buff(&mut self, color: &Vector3<f32>) {
         self.f_buffer.fill(from_u8_rgb(color.x as u8, color.y as u8, color.z as u8));
     }
 

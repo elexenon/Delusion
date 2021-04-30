@@ -7,6 +7,7 @@ mod primitives;
 mod delusion;
 mod transform;
 mod shader;
+mod graphics;
 
 use crate::primitives::Triangle;
 use crate::transform::*;
@@ -23,13 +24,14 @@ use minifb::{
     Key, Window, WindowOptions, KeyRepeat
 };
 use na::{Vector2, Vector3, Matrix, Matrix4, Vector4};
+use crate::delusion::MsaaOptions;
 
 /////////////////////////////////////////////////////////////////////////////////
 
 static TITLE: &str = "Delusion Renderer";
 
-static WIDTH:  usize = 500;
-static HEIGHT: usize = 500;
+static WIDTH:  usize = 800;
+static HEIGHT: usize = 800;
 
 static UP    : Vector3<f32> = Vector3::new(0.0,1.0,0.0);
 static ORIGIN: Vector3<f32> = Vector3::new(0.0,0.0,0.0);
@@ -52,14 +54,15 @@ fn main() {
 
     let mut light: Vector3<f32> = Vector3::new(1.0,-1.0,1.0).normalize();
     let mut eye  : Vector3<f32> = Vector3::new(1.0,1.0,3.0);
-    let mut shader = shader::WeirdShader::new();
     let mut clear_color: Vector3<f32> = CLEAR_COLOR;
+    let mut shader = shader::WeirdShader::new();
 
     /////////////////////////////////////////////////////////////////////////////////
 
     let mut d = delusion::Delusion::new(WIDTH, HEIGHT);
     d.viewport(0.75);
     d.projection(-1.0/(eye-ORIGIN).norm());
+    d.enable_msaa(MsaaOptions::X4);
 
     /////////////////////////////////////////////////////////////////////////////////
 
@@ -78,7 +81,7 @@ fn main() {
             let mut screen_coords: Vector3<Vector4<f32>> = Default::default();
             for j in 0..3 {
                 screen_coords[j] = shader.vertex(i,j,&light,&model,&d);
-                println!("{:?}", screen_coords[j]);
+                //println!("{:?}", screen_coords[j]);
             }
             d.rasterize_tri(&screen_coords, &mut shader, &model);
         }
@@ -133,6 +136,14 @@ fn main() {
                         println!("Key2 Pressed");
                         clear_color = CLEAR_COLOR_2;
                     },
+                    Key::M => {
+                        println!("M Pressed");
+                        d.disable_msaa();
+                    },
+                    Key::N => {
+                        println!("N Pressed");
+                        d.enable_msaa(MsaaOptions::X4);
+                    },
                     _ => (),
                 }
             }
@@ -141,6 +152,10 @@ fn main() {
             .update_with_buffer(d.get_frame_buff(), WIDTH, HEIGHT)
             .unwrap();
         window
-            .set_title(&format!("MSAA::OFF  {} - 帧时间:{}ms/{}fps  着色器:{}",TITLE,frame_time,1000/frame_time,shader.to_string()));
+            .set_title(&format!("{}MSAA  {} - 帧时间:{}ms/{}fps  着色器:{}",
+                                d.msaa(),
+                                TITLE,frame_time,
+                                1000/frame_time,
+                                shader));
     }
 }

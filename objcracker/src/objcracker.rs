@@ -5,8 +5,6 @@ use image::{
     GenericImageView,
     DynamicImage,
 };
-use image::io::Reader as ImageReader;
-
 use std::{
   fs::File,io::{BufReader,prelude::*}
 };
@@ -149,13 +147,16 @@ impl Objcracker {
     /////////////////////////////////////////////////////////////////////////////////
 
     pub fn diffuse(&self, uv: &Vector2<f32>) -> Vector3<f32> {
-        let coord: [u32;2] = [(self.diff_w as f32 * uv.x) as u32, (self.diff_h as f32 * uv.y) as u32];
-        let color = self.diffuse_map.get_pixel(coord[0],self.diff_h-1-coord[1]);
+        let x = (self.diff_w as f32 * uv.x) as u32;
+        let y = self.diff_h-1-(self.diff_h as f32 * uv.y) as u32;
+        if x >= self.diff_w || y >= self.diff_h {
+            return Vector3::new(0.0,0.0,0.0);
+        }
+        let color = self.diffuse_map.get_pixel(x,y);
         Vector3::new(color[0] as f32,color[1] as f32, color[2] as f32)
     }
 
-    // 根据法线材质计算法向量
-    pub fn normal(&self, uv: Vector2<f32>) -> Vector3<f32> {
+    pub fn normal(&self, uv: &Vector2<f32>) -> Vector3<f32> {
         let color = self.normal_map.
             get_pixel(uv.x as u32*self.norm_w, uv.y as u32*self.norm_h);
         let mut res: Vector3<f32> = Default::default();

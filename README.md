@@ -13,9 +13,12 @@
 ```
 cd ./Delusion
 cargo build
-cargo run [obj_path] [texture_path]
+cargo run --release [objpath/prefix]
 ```
 
 ## Performance
 
-- Average frame time: 1500ms.
+Average frame time: 
+
+- Enable 4xMSAA: 27fps / 36ms
+- Disable MSAA : 56fps / 17ms

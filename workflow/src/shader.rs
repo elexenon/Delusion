@@ -1,7 +1,6 @@
 use nalgebra::{
     Vector2, Vector3, Matrix, Matrix4, Vector4, Matrix2x3, Matrix3
 };
-use rand::prelude::*;
 use objcracker::Objcracker;
 use crate::transform::*;
 use crate::delusion::Delusion;
@@ -46,7 +45,7 @@ impl ShaderPayload for GouraudShader {
 }
 impl Display for GouraudShader {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
-        write!(f, "Gouraud_Shader::with Texture")
+        write!(f, "Gouraud_Shader::with texture")
 	}
 }
 
@@ -125,7 +124,7 @@ impl ShaderPayload for PhongShader {
 }
 impl Display for PhongShader {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
-        write!(f, "Phong_Shader::with Texture")
+        write!(f, "Phong_Shader::with texture")
     }
 }
 

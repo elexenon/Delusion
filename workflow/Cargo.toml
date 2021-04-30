@@ -10,6 +10,6 @@ edition = "2018"
 nalgebra = "0.26.1"       # linear algebra
 image = "0.23.14"         # image process
 minifb = "0.19.3"         # canvas handler
-rand = "0.8.3"            # rand
+egui = "0.11.0"           # gui
 
 objcracker = {path = "../objcracker"}

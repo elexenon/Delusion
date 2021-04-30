@@ -13,8 +13,16 @@ pub fn vec3f_to_vec4f(v: &Vector3<f32>, w: f32) -> Vector4<f32> {
 }
 
 #[inline(always)]
-pub fn vec3i_to_vec3f(v: &Vector3<i32>) -> Vector3<f32> {
-    Vector3::new(v.x as f32, v.y as f32, v.z as f32)
+pub fn vec4f_vec3f_homo(v: &Vector4<f32>, w: f32) -> Vector3<f32> {
+    Vector3::new(v.x, v.y,w)
+}
+
+#[inline(always)]
+pub fn vec3i_to_vec3f(v: &Vector3<i32>) -> Vector3<f32> { Vector3::new(v.x as f32, v.y as f32, v.z as f32) }
+
+#[inline(always)]
+pub fn vec4f_to_vec3f(v: &Vector4<f32>) -> Vector3<f32> {
+    Vector3::new(v.x, v.y, v.z)
 }
 
 #[inline(always)]
@@ -28,9 +36,7 @@ pub fn vec2i_to_vec2f(v: &Vector2<i32>) -> Vector2<f32> {
 }
 
 #[inline(always)]
-pub fn vec2f_to_vec2i(v: &Vector2<f32>) -> Vector2<i32> {
-    Vector2::new((v.x + 0.5) as i32, (v.y + 0.5) as i32)
-}
+pub fn vec2f_to_vec2i(v: &Vector2<f32>) -> Vector2<i32> { Vector2::new((v.x + 0.5) as i32, (v.y + 0.5) as i32) }
 
 #[inline(always)]
 pub fn cross_product(v1: &Vector3<f32>,v2: &Vector3<f32>) -> Vector3<f32> {
@@ -66,3 +72,10 @@ pub fn v34f_to_v33f(v34: &Vector3<Vector4<f32>>) -> Vector3<Vector3<f32>> {
     }
     v33
 }
+
+/*
+TODO
+pub fn inverse_transpose(m: &Matrix4<f32>) -> Matrix4<f32> {
+
+}
+*/

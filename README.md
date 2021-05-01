@@ -8,6 +8,11 @@
 - image
 - minifb
 
+## Environment
+
+macOS 11.2.3
+LLVM 12.0.0
+
 ## Build
 
 ```

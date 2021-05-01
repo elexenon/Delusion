@@ -9,6 +9,8 @@ use std::{
   fs::File,io::{BufReader,prelude::*}
 };
 
+/////////////////////////////////////////////////////////////////////////////////
+
 pub struct Objcracker {
     prefix      : String,
     verts       : Vec<Vector3<f32>>,

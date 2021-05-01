@@ -2,6 +2,8 @@ use nalgebra::{Vector2,Vector3,Matrix,Matrix4,Vector4,Matrix2};
 use crate::transform::*;
 use std::fmt::{Display, Formatter, Error};
 
+/////////////////////////////////////////////////////////////////////////////////
+
 pub static MSAA_LEVEL: usize = 4;
 pub static MSAA_POS_STEP: f32 = 0.25;
 pub static MSAA_SAMPLE_POS: Matrix2<Vector2<f32>> = Matrix2::new(
@@ -9,39 +11,40 @@ pub static MSAA_SAMPLE_POS: Matrix2<Vector2<f32>> = Matrix2::new(
     Vector2::new(-MSAA_POS_STEP,MSAA_POS_STEP),Vector2::new(MSAA_POS_STEP,-MSAA_POS_STEP),
 );
 
+/////////////////////////////////////////////////////////////////////////////////
+
+#[derive(Default,Clone)]
 pub struct MsaaTensor {
-    conv: Matrix2<Vector2<f32>>,
-    mask: Vec<Vector4<bool>>,
-    dept: Vec<Vector4<f32>>,
-    colo: Vec<Vector4<Vector3<f32>>>,
+    mask:  Vector4<bool>,
+    dept:  Vector4<f32>,
+    colo:  Vector4<Vector3<f32>>,
 }
-
 impl MsaaTensor {
-    pub fn new(width: usize, height: usize) -> MsaaTensor {
-        let mut conv_tmp: Matrix2<Vector2<f32>> = Default::default();
-        let rotate: Matrix2<f32> = rotate_matrix2d(-26.6);
-        for i in 0..4 {
-            conv_tmp[i] = rotate*MSAA_SAMPLE_POS[i];
-        }
-        MsaaTensor {
-            conv: conv_tmp,
-            mask: vec![Default::default();width*height],
-            dept: vec![Vector4::repeat(f32::MIN);width*height],
-            colo: vec![Default::default();width*height],
-        }
-    }
-
     #[inline]
-    pub fn pos(&self,idx: usize) -> &Vector2<f32> { &self.conv[idx] }
+    pub fn set_mask(&mut self,idx: usize,flag: bool) { self.mask[idx] = flag; }
     #[inline]
-    pub fn set_mask(&mut self,ipixel: usize,idx: usize,flag: bool) { self.mask[ipixel][idx] = flag; }
+    pub fn mask(&mut self,idx: usize) -> bool { self.mask[idx] }
     #[inline]
-    pub fn get_mask(&mut self,ipixel: usize,idx: usize) -> bool { self.mask[ipixel][idx] }
+    pub fn set_dept(&mut self,idx: usize,value: f32) { self.dept[idx] = value; }
     #[inline]
-    pub fn set_dept(&mut self,ipixel: usize,idx: usize,value: f32) { self.dept[ipixel][idx] = value; }
+    pub fn dept(&mut self,idx: usize) -> f32 { self.dept[idx] }
     #[inline]
-    pub fn get_dept(&mut self,ipixel: usize,idx: usize) -> f32 { self.dept[ipixel][idx] }
+    pub fn set_colo(&mut self,idx: usize,color: &Vector3<f32>) { self.colo[idx] = color.clone(); }
+    #[inline]
+    pub fn colo(&mut self,idx: usize) -> &Vector3<f32> { &self.colo[idx] }
 }
+impl Display for MsaaTensor {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "[Active:{};Color:({},{},{});Depth:{}]  [Active:{};Color:({},{},{});Depth:{}]\n\
+                   [Active:{};Color:({},{},{});Depth:{}]  [Active:{};Color:({},{},{});Depth:{}]",
+               self.mask[0],self.colo[0].x,self.colo[0].y,self.colo[0].z,self.dept[0],
+               self.mask[1],self.colo[1].x,self.colo[1].y,self.colo[1].z,self.dept[1],
+               self.mask[2],self.colo[2].x,self.colo[2].y,self.colo[2].z,self.dept[2],
+               self.mask[3],self.colo[3].x,self.colo[3].y,self.colo[3].z,self.dept[3])
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////
 
 #[derive(PartialEq)]
 pub enum MsaaOptions {
@@ -59,6 +62,19 @@ impl Display for MsaaOptions {
     }
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+
+pub fn calc_conv() -> Matrix2<Vector2<f32>> {
+    let mut conv_tmp: Matrix2<Vector2<f32>> = Default::default();
+    let rotate: Matrix2<f32> = rotate_matrix2d(-26.6);
+    for i in 0..4 {
+        conv_tmp[i] = rotate*MSAA_SAMPLE_POS[i];
+    }
+    conv_tmp
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+
 pub fn bounding_box(pts: &Vector3<Vector4<f32>>,bboxmin:&mut [f32;2],bboxmax:&mut [f32;2]) {
     for i in 0..3 {
         for j in 0..2 {
@@ -67,11 +83,17 @@ pub fn bounding_box(pts: &Vector3<Vector4<f32>>,bboxmin:&mut [f32;2],bboxmax:&mu
         }
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////////
+
 #[inline(always)]
 pub fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
     let (r, g, b) = (r as u32, g as u32, b as u32);
     (r << 16) | (g << 8) | b
 }
+
+/////////////////////////////////////////////////////////////////////////////////
+
 #[inline(always)]
 pub fn interior(weights: &Vector3<f32>) -> bool {
     if weights.x<0.0 || weights.y<0.0 || weights.z<0.0 {
@@ -79,6 +101,9 @@ pub fn interior(weights: &Vector3<f32>) -> bool {
     }
     true
 }
+
+/////////////////////////////////////////////////////////////////////////////////
+
 #[inline(always)]
 pub fn barycentric(a:&Vector4<f32>,b:&Vector4<f32>,c:&Vector4<f32>,x:f32,y:f32) -> Vector3<f32> {
     let gamma: f32 = ((b.x - a.x) * (y - a.y) - (x - a.x) * (b.y - a.y)) /

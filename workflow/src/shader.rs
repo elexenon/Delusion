@@ -7,6 +7,8 @@ use crate::delusion::Delusion;
 
 use std::fmt::{Display, Formatter, Error};
 
+/////////////////////////////////////////////////////////////////////////////////
+
 pub trait ShaderPayload {
     fn vertex(&mut self, iface: usize, ivert: usize, light: &Vector3<f32>,
               model: &Objcracker, render: &Delusion) -> Vector4<f32>;

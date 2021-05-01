@@ -5,6 +5,8 @@ use crate::shader::ShaderPayload;
 use crate::graphics::*;
 use crate::transform::rotate_matrix2d;
 
+/////////////////////////////////////////////////////////////////////////////////
+
 pub struct Delusion {
     width       : usize,
     height      : usize,
@@ -14,7 +16,8 @@ pub struct Delusion {
     f_buffer    : Vec<u32>,
     d_buffer    : Vec<f32>,
     msaa_status : MsaaOptions,
-    msaa        : MsaaTensor,
+    msaa_tensors: Vec<MsaaTensor>,
+    conv_core   : Matrix2<Vector2<f32>>,
 }
 
 impl Delusion {
@@ -28,7 +31,8 @@ impl Delusion {
             f_buffer    : vec![0;width*height],
             d_buffer    : vec![f32::MIN;width*height],
             msaa_status : MsaaOptions::Disable,
-            msaa        : MsaaTensor::new(width,height),
+            msaa_tensors: vec![Default::default();width*height],
+            conv_core   : calc_conv(),
         }
     }
 
@@ -59,24 +63,28 @@ impl Delusion {
                     let weights = barycentric(&(pts[0]/pts[0][3]),&(pts[1]/pts[1][3]),
                                               &(pts[2]/pts[2][3]),x as f32, y as f32);
                     let ipixel: usize = x + y * self.height;
+                    let tensor = &mut self.msaa_tensors[ipixel];
+                    /* TODO remove min_dep */
                     let mut min_dep: f32 = f32::MAX;
                     for idx in 0..MSAA_LEVEL {
                         let seg_weights = barycentric(&(pts[0]/pts[0][3]),&(pts[1]/pts[1][3]),
-                                                  &(pts[2]/pts[2][3]),x as f32 + self.msaa.pos(idx).x, y as f32 + self.msaa.pos(idx).y);
+                                                  &(pts[2]/pts[2][3]),x as f32 + self.conv_core[idx].x, y as f32 + self.conv_core[idx].y);
                         if interior(&seg_weights) {
                             let z: f32 = pts[0][2]*seg_weights.x + pts[1][2]*seg_weights.y + pts[2][2]*seg_weights.z;
                             let w: f32 = pts[0][3]*seg_weights.x + pts[1][3]*seg_weights.y + pts[2][3]*seg_weights.z;
                             let dept: f32 = (z/w+0.5).min(255.0).max(0.0);
-                            self.msaa.set_mask(ipixel,idx,true);
-                            self.msaa.set_dept(ipixel,idx,dept);
+                            tensor.set_mask(idx,true);
+                            tensor.set_dept(idx,dept);
+                            tensor.set_colo(idx,&(shader.fragment(&seg_weights,&model)));
                             min_dep = dept.min(min_dep);
                         }else {
-                            self.msaa.set_mask(ipixel,idx,false);
+                            tensor.set_mask(idx,false);
                         }
                     }
+                    //println!("{}\n",tensor);
                     let mut cnt:f32 = 0.0;
                     for idx in 0..MSAA_LEVEL {
-                        if self.msaa.get_mask(ipixel,idx) == true {
+                        if self.msaa_tensors[ipixel].mask(idx) == true {
                             cnt += 1.0;
                         }
                     }
@@ -157,12 +165,12 @@ impl Delusion {
         self.d_buffer[idx] = value;
     }
 
+    /////////////////////////////////////////////////////////////////////////////////
+
+    #[inline]
     pub fn enable_msaa(&mut self, option: MsaaOptions) {
         self.msaa_status = option;
     }
-
-    /////////////////////////////////////////////////////////////////////////////////
-
     #[inline]
     pub fn disable_msaa(&mut self) { self.msaa_status = MsaaOptions::Disable; }
     #[inline]

@@ -24,7 +24,7 @@ use minifb::{
     Key, Window, WindowOptions, KeyRepeat
 };
 use na::{Vector2, Vector3, Matrix, Matrix4, Vector4};
-use crate::delusion::MsaaOptions;
+use crate::graphics::MsaaOptions;
 
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -153,7 +153,7 @@ fn main() {
             .unwrap();
         window
             .set_title(&format!("{}MSAA  {} - 帧时间:{}ms/{}fps  着色器:{}",
-                                d.msaa(),
+                                d.msaa_status(),
                                 TITLE,frame_time,
                                 1000/frame_time,
                                 shader));

@@ -173,16 +173,16 @@ impl Objcracker {
 
     /////////////////////////////////////////////////////////////////////////////////
 
-    #[inline(always)]
+    #[inline]
     pub fn nverts(&self) -> usize { self.verts.len() }
 
-    #[inline(always)]
+    #[inline]
     pub fn nnormals(&self) -> usize { self.normals.len() }
 
-    #[inline(always)]
+    #[inline]
     pub fn nfaces(&self) -> usize { self.faces.len() }
 
-    #[inline(always)]
+    #[inline]
     pub fn nuvs(&self) -> usize { self.uvs.len() }
 
 }

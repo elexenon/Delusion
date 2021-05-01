@@ -9,21 +9,19 @@ mod transform;
 mod shader;
 mod graphics;
 
-use crate::primitives::Triangle;
-use crate::transform::*;
 use crate::objcracker::Objcracker;
 use crate::shader::ShaderPayload;
 
 use std::{
-    cmp::min, mem, env,
+    env,
     time::{
-        Duration, SystemTime
+        SystemTime
     }
 };
 use minifb::{
-    Key, Window, WindowOptions, KeyRepeat
+    Key, Window, WindowOptions
 };
-use na::{Vector2, Vector3, Matrix, Matrix4, Vector4};
+use na::{Vector3, Vector4};
 use crate::graphics::MsaaOptions;
 
 /////////////////////////////////////////////////////////////////////////////////

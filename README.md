@@ -18,7 +18,7 @@ cargo run --release [objpath/prefix]
 
 ## Performance
 
-Average frame time: 
+Average frame time: (With resolution 800x800, WeirdShader)
 
-- Enable 4xMSAA: 27fps / 36ms
-- Disable MSAA : 56fps / 17ms
+- Enable 4xMSAA: 17fps / 57ms
+- Disable MSAA : 76fps / 13ms

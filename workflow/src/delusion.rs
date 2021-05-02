@@ -30,7 +30,7 @@ impl Delusion {
             f_buffer    : vec![0;width*height],
             d_buffer    : vec![f32::MIN;width*height],
             msaa_status : MsaaOptions::Disable,
-            msaa_tensors: vec![Default::default();width*height],
+            msaa_tensors: vec![MsaaTensor::new();width*height],
             conv_core   : calc_conv(),
         }
     }
@@ -59,39 +59,65 @@ impl Delusion {
         else {
             for x in bboxmin[0].ceil() as usize..bboxmax[0].ceil() as usize {
                 for y in bboxmin[1].ceil() as usize..bboxmax[1].ceil() as usize {
-                    let weights = barycentric(&(pts[0]/pts[0][3]),&(pts[1]/pts[1][3]),
-                                              &(pts[2]/pts[2][3]),x as f32, y as f32);
-                    let ipixel: usize = x + y * self.height;
+
+                    let ipixel : usize = x + y * self.height;
                     let tensor = &mut self.msaa_tensors[ipixel];
-                    /* TODO remove min_dep */
-                    let mut min_dep: f32 = f32::MAX;
+                    let mut hit: f32 = 0.0;
+
                     for idx in 0..MSAA_LEVEL {
                         let seg_weights = barycentric(&(pts[0]/pts[0][3]),&(pts[1]/pts[1][3]),
                                                   &(pts[2]/pts[2][3]),x as f32 + self.conv_core[idx].x, y as f32 + self.conv_core[idx].y);
                         if interior(&seg_weights) {
+                            hit += 1.0;
                             let z: f32 = pts[0][2]*seg_weights.x + pts[1][2]*seg_weights.y + pts[2][2]*seg_weights.z;
                             let w: f32 = pts[0][3]*seg_weights.x + pts[1][3]*seg_weights.y + pts[2][3]*seg_weights.z;
                             let dept: f32 = (z/w+0.5).min(255.0).max(0.0);
                             tensor.set_mask(idx,true);
                             tensor.set_dept(idx,dept);
                             tensor.set_colo(idx,&(shader.fragment(&seg_weights,&model)));
-                            min_dep = dept.min(min_dep);
                         }else {
                             tensor.set_mask(idx,false);
                         }
                     }
-                    //println!("{}\n",tensor);
-                    let mut cnt:f32 = 0.0;
-                    for idx in 0..MSAA_LEVEL {
-                        if self.msaa_tensors[ipixel].mask(idx) == true {
-                            cnt += 1.0;
-                        }
-                    }
-                    if cnt == 0.0 || self.get_depth(x,y)>min_dep {
+
+                    //println!("{}\n{}",tensor,hit);
+
+                    // 如果没有子sample被hit，那么直接discard此pixel
+                    if hit == 0.0 {
                         continue;
                     }
-                    self.set_depth(x,y,min_dep);
-                    self.set_color(x,y,&(shader.fragment(&weights,&model)*(cnt/ MSAA_LEVEL as f32)));
+                    else if hit == 4.0 {
+                        let weights = barycentric(&(pts[0]/pts[0][3]),&(pts[1]/pts[1][3]),
+                                                  &(pts[2]/pts[2][3]),x as f32, y as f32);
+                        let z: f32 = pts[0][2]*weights.x + pts[1][2]*weights.y + pts[2][2]*weights.z;
+                        let w: f32 = pts[0][3]*weights.x + pts[1][3]*weights.y + pts[2][3]*weights.z;
+                        let dep: f32 = (z/w+0.5).min(255.0).max(0.0);
+                        if self.get_depth(x,y)<=dep {
+                            self.set_depth(x,y,dep);
+                            self.set_color(x,y,&shader.fragment(&weights,&model));
+                        }
+                        continue;
+                    }
+                    else {
+                        let mut diffuse_blend: Vector3<f32> = Default::default();
+                        let mut depth_blend  : f32 = 0.0;
+
+                        for idx in 0..MSAA_LEVEL {
+                            if self.msaa_tensors[ipixel].mask(idx) == true {
+                                diffuse_blend += self.msaa_tensors[ipixel].colo(idx);
+                                depth_blend   += self.msaa_tensors[ipixel].dept(idx);
+                            }
+                        }
+
+                        // 当前pixel的深度由被hit的子sample混合得到
+                        depth_blend /= hit as f32;
+                        if self.get_depth(x,y)>depth_blend {
+                            continue;
+                        }
+
+                        self.set_depth(x,y,depth_blend);
+                        self.set_color(x,y,&(diffuse_blend/hit as f32));
+                    }
                 }
             }
         }

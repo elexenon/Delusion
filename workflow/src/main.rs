@@ -53,7 +53,7 @@ fn main() {
     let mut light: Vector3<f32> = Vector3::new(1.0,-1.0,1.0).normalize();
     let mut eye  : Vector3<f32> = Vector3::new(1.0,1.0,3.0);
     let mut clear_color: Vector3<f32> = CLEAR_COLOR;
-    let mut shader = shader::WeirdShader::new();
+    let mut shader = shader::GouraudShader::new();
 
     /////////////////////////////////////////////////////////////////////////////////
 

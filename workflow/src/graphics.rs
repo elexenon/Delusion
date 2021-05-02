@@ -1,25 +1,32 @@
-use nalgebra::{Vector2,Vector3,Matrix,Matrix4,Vector4,Matrix2};
+use nalgebra::{Vector2,Vector3,Vector4,Matrix2};
 use crate::transform::*;
 use std::fmt::{Display, Formatter, Error};
 
 /////////////////////////////////////////////////////////////////////////////////
 
 pub static MSAA_LEVEL: usize = 4;
-pub static MSAA_POS_STEP: f32 = 0.25;
+pub static MSAA_OFFSET: f32 = 0.5;
 pub static MSAA_SAMPLE_POS: Matrix2<Vector2<f32>> = Matrix2::new(
-    Vector2::new(-MSAA_POS_STEP,-MSAA_POS_STEP),Vector2::new(MSAA_POS_STEP,MSAA_POS_STEP),
-    Vector2::new(-MSAA_POS_STEP,MSAA_POS_STEP),Vector2::new(MSAA_POS_STEP,-MSAA_POS_STEP),
+    Vector2::new(-MSAA_OFFSET,-MSAA_OFFSET),Vector2::new(MSAA_OFFSET,MSAA_OFFSET),
+    Vector2::new(-MSAA_OFFSET,MSAA_OFFSET),Vector2::new(MSAA_OFFSET,-MSAA_OFFSET),
 );
 
 /////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Default,Clone)]
+#[derive(Clone)]
 pub struct MsaaTensor {
     mask:  Vector4<bool>,
     dept:  Vector4<f32>,
     colo:  Vector4<Vector3<f32>>,
 }
 impl MsaaTensor {
+    pub fn new() -> MsaaTensor {
+        MsaaTensor {
+            mask: Vector4::repeat(false),
+            dept: Vector4::repeat(f32::MIN),
+            colo: Vector4::repeat(Vector3::repeat(0.0)),
+        }
+    }
     #[inline]
     pub fn set_mask(&mut self,idx: usize,flag: bool) { self.mask[idx] = flag; }
     #[inline]
@@ -33,6 +40,7 @@ impl MsaaTensor {
     #[inline]
     pub fn colo(&mut self,idx: usize) -> &Vector3<f32> { &self.colo[idx] }
 }
+
 impl Display for MsaaTensor {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "[Active:{};Color:({},{},{});Depth:{}]  [Active:{};Color:({},{},{});Depth:{}]\n\

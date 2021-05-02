@@ -152,7 +152,7 @@ impl Objcracker {
         let x = (self.diff_w as f32 * uv.x) as u32;
         let y = self.diff_h-1-(self.diff_h as f32 * uv.y) as u32;
         if x >= self.diff_w || y >= self.diff_h {
-            return Vector3::new(0.0,0.0,0.0);
+            return Vector3::new(255.0,255.0,255.0);
         }
         let color = self.diffuse_map.get_pixel(x,y);
         Vector3::new(color[0] as f32,color[1] as f32, color[2] as f32)

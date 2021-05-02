@@ -1,5 +1,5 @@
 use nalgebra::{
-    Vector2, Vector3, Matrix, Matrix4, Vector4, Matrix2
+    Vector2, Vector3, Vector4, Matrix2
 };
 
 /////////////////////////////////////////////////////////////////////////////////

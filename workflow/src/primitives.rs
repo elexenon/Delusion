@@ -1,4 +1,4 @@
-use nalgebra::{Vector3, Vector2, Vector4};
+use nalgebra::{Vector3, Vector2};
 
 #[derive(Debug)]
 pub struct Triangle {

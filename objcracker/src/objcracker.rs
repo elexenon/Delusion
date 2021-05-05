@@ -159,18 +159,22 @@ impl Objcracker {
     }
 
     pub fn normal(&self, uv: &Vector2<f32>) -> Vector3<f32> {
+        let x = (self.norm_w as f32 * uv.x) as u32;
+        let y = self.norm_h-1-(self.norm_h as f32 * uv.y) as u32;
         let color = self.normal_map.
-            get_pixel(uv.x as u32*self.norm_w, uv.y as u32*self.norm_h);
-        let mut res: Vector3<f32> = Default::default();
+            get_pixel(x, y);
+        let mut res: Vector3<f32> = Vector3::new(0.0,0.0,0.0);
         for i in 0..3 {
-            res[2-i] = color[i] as f32/255.0*2.0-1.0;
+            res[i] = color[i] as f32 / 255.0 * 2.0 - 1.0;
         }
         res
     }
 
-    pub fn specular(&self, uv: Vector2<f32>) -> f32 {
+    pub fn specular(&self, uv: &Vector2<f32>) -> f32 {
+        let x = (self.spec_w as f32 * uv.x) as u32;
+        let y = self.spec_h-1-(self.spec_h as f32 * uv.y) as u32;
         self.specular_map
-            .get_pixel(uv.x as u32*self.spec_w, uv.y as u32*self.spec_h)[0] as f32 / 1.0
+            .get_pixel(x, y)[0] as f32 / 1.0
     }
 
     /////////////////////////////////////////////////////////////////////////////////

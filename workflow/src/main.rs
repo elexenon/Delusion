@@ -21,12 +21,12 @@ use std::{
 use minifb::{
     Key, Window, WindowOptions
 };
-use na::{Vector3, Vector4};
+use na::{Vector3, Vector4, Matrix4};
 use crate::graphics::MsaaOptions;
 
 /////////////////////////////////////////////////////////////////////////////////
 
-static TITLE: &str = "Delusion Renderer";
+static TITLE: &str = "Delusion Canvas";
 
 static WIDTH:  usize = 800;
 static HEIGHT: usize = 800;
@@ -38,6 +38,10 @@ static WHITE_COLOR   : Vector3<f32> = Vector3::new(255.0,255.0,255.0);
 static CLEAR_COLOR   : Vector3<f32> = Vector3::new(5.0,5.0,5.0);
 static CLEAR_COLOR_2 : Vector3<f32> = Vector3::new(79.0,147.0,184.0);
 
+static AXIS_X: Vector3<f32> = Vector3::new(1.0, 0.0, 0.0);
+static AXIS_Y: Vector3<f32> = Vector3::new(0.0, 1.0, 0.0);
+static AXIS_Z: Vector3<f32> = Vector3::new(0.0, 0.0, 1.0);
+
 /////////////////////////////////////////////////////////////////////////////////
 
 fn main() {
@@ -46,21 +50,30 @@ fn main() {
     /////////////////////////////////////////////////////////////////////////////////
 
     let mut model = Objcracker::new(&args[1]);
-    model.interpret();
+    model.interpret().unwrap();
 
     /////////////////////////////////////////////////////////////////////////////////
 
-    let mut light: Vector3<f32> = Vector3::new(1.0,-1.0,1.0).normalize();
-    let mut eye  : Vector3<f32> = Vector3::new(1.0,1.0,3.0);
+    let mut light: Vector3<f32> = Vector3::new(1.0,1.0,1.0).normalize();
+    let mut eye  : Vector3<f32> = Vector3::new(0.0,1.0,3.0);
     let mut clear_color: Vector3<f32> = CLEAR_COLOR;
-    let mut shader = shader::GouraudShader::new();
+
+    let mut m_model: Matrix4<f32> = Matrix4::<f32>::identity();
+    let mut axis_rotate: [f32;2] = [0.0;2];
+    let rotate_step: f32 = 25.0;
 
     /////////////////////////////////////////////////////////////////////////////////
 
     let mut d = delusion::Delusion::new(WIDTH, HEIGHT);
-    d.viewport(0.75);
-    d.projection(-1.0/(eye-ORIGIN).norm());
-    d.enable_msaa(MsaaOptions::X4);
+    d.set_camera(graphics::calc_m_camera(&eye, &ORIGIN, &UP));
+    d.set_viewport(graphics::calc_m_viewport(WIDTH,HEIGHT,0.75));
+    d.set_projection(graphics::calc_m_projection(-1.0/(eye-ORIGIN).norm()));
+
+    /////////////////////////////////////////////////////////////////////////////////
+
+    let m = d.projection()*d.camera();
+    let mit = m.try_inverse().unwrap().transpose();
+    let mut shader = shader::PhongShader::new(&m,&mit);
 
     /////////////////////////////////////////////////////////////////////////////////
 
@@ -73,13 +86,13 @@ fn main() {
 
         d.clear_frame_buff(&clear_color);
         d.clear_depth_buff();
-        d.lookat(&eye,&UP,&ORIGIN);
+        d.set_model(m_model);
+        d.set_camera(graphics::calc_m_camera(&eye, &ORIGIN, &UP));
 
         for i in 0..model.nfaces() {
             let mut screen_coords: Vector3<Vector4<f32>> = Default::default();
             for j in 0..3 {
                 screen_coords[j] = shader.vertex(i,j,&light,&model,&d);
-                //println!("{:?}", screen_coords[j]);
             }
             d.rasterize_tri(&screen_coords, &mut shader, &model);
         }
@@ -126,13 +139,12 @@ fn main() {
                         println!("Down Pressed");
                         light.y = light.y - 0.5;
                     },
-                    Key::Key1 => {
-                        println!("Key1 Pressed");
-                        clear_color = CLEAR_COLOR;
-                    },
-                    Key::Key2 => {
-                        println!("Key2 Pressed");
-                        clear_color = CLEAR_COLOR_2;
+                    Key::Q => {
+                        println!("Q Pressed");
+                        match clear_color == CLEAR_COLOR {
+                            true  => clear_color = CLEAR_COLOR_2,
+                            false => clear_color = CLEAR_COLOR
+                        };
                     },
                     Key::M => {
                         println!("M Pressed");
@@ -141,6 +153,26 @@ fn main() {
                     Key::N => {
                         println!("N Pressed");
                         d.enable_msaa(MsaaOptions::X4);
+                    },
+                    Key::I => {
+                        println!("I Pressed");
+                        axis_rotate[0] -= rotate_step;
+                        m_model = graphics::calc_m_model(AXIS_X, axis_rotate[0]);
+                    },
+                    Key::J => {
+                        println!("J Pressed");
+                        axis_rotate[1] -= rotate_step;
+                        m_model = graphics::calc_m_model(AXIS_Y, axis_rotate[1]);
+                    },
+                    Key::K => {
+                        println!("K Pressed");
+                        axis_rotate[0] += rotate_step;
+                        m_model = graphics::calc_m_model(AXIS_X, axis_rotate[0]);
+                    },
+                    Key::L => {
+                        println!("L Pressed");
+                        axis_rotate[1] += rotate_step;
+                        m_model = graphics::calc_m_model(AXIS_Y, axis_rotate[1]);
                     },
                     _ => (),
                 }

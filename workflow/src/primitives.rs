@@ -1,22 +1,22 @@
-use nalgebra::{Vector3, Vector2};
+use nalgebra::{Vector2, Vector3};
 
 #[derive(Debug)]
 pub struct Triangle {
-    v:          Vector3<Vector3<f32>>,
-    v_i32:      Vector3<Vector3<i32>>,
-    color:      Vector3<Vector3<u8>>,
+    v: Vector3<Vector3<f32>>,
+    v_i32: Vector3<Vector3<i32>>,
+    color: Vector3<Vector3<u8>>,
     tex_coords: Vector3<Vector2<i32>>,
-    normals:    Vector3<Vector3<f32>>,
+    normals: Vector3<Vector3<f32>>,
 }
 
 impl Triangle {
     pub fn new() -> Triangle {
         Triangle {
-            v:          Default::default(),
-            v_i32:      Default::default(),
-            color:      Default::default(),
+            v: Default::default(),
+            v_i32: Default::default(),
+            color: Default::default(),
             tex_coords: Default::default(),
-            normals:    Default::default(),
+            normals: Default::default(),
         }
     }
 
@@ -66,7 +66,9 @@ impl Triangle {
         self.tex_coords[0]
     }
     #[inline(always)]
-    pub fn tex_b(&self) -> Vector2<i32> { self.tex_coords[1] }
+    pub fn tex_b(&self) -> Vector2<i32> {
+        self.tex_coords[1]
+    }
     #[inline(always)]
     pub fn tex_c(&self) -> Vector2<i32> {
         self.tex_coords[2]

@@ -1,11 +1,11 @@
 use crate::transform::*;
-use nalgebra::{Matrix2, Matrix4, Vector2, Vector3, Vector4, Unit};
+use nalgebra::{Matrix2, Matrix4, Unit, Vector2, Vector3, Vector4};
 use std::fmt::{Display, Error, Formatter};
 
 /////////////////////////////////////////////////////////////////////////////////
 
 pub static MSAA_LEVEL: usize = 4;
-pub static MSAA_OFFSET: f32 = 0.5;
+pub static MSAA_OFFSET: f32 = 0.25;
 pub static MSAA_SAMPLE_POS: Matrix2<Vector2<f32>> = Matrix2::new(
     Vector2::new(-MSAA_OFFSET, -MSAA_OFFSET),
     Vector2::new(MSAA_OFFSET, MSAA_OFFSET),
@@ -162,24 +162,29 @@ pub fn barycentric(
 
 /////////////////////////////////////////////////////////////////////////////////
 
-pub fn calc_m_model(axis: Vector3<f32>, angle: f32) -> Matrix4<f32> {
+pub fn calc_m_model(axis: Vector3<f32>, angle: f32, scale: f32) -> Matrix4<f32> {
     let axis_unit: Unit<Vector3<f32>> = Unit::new_normalize(axis);
-    Matrix4::from_axis_angle(&axis_unit, degree_to_radian(angle))
+    let m_rotate = Matrix4::from_axis_angle(&axis_unit, degree_to_radian(angle));
+    let mut m_scale = Matrix4::<f32>::identity();
+    for i in 0..2 {
+        m_scale[(i,i)] = scale;
+    }
+    m_rotate*m_scale
 }
 
 /////////////////////////////////////////////////////////////////////////////////
 
 pub fn calc_m_camera(e: &Vector3<f32>, origin: &Vector3<f32>, up: &Vector3<f32>) -> Matrix4<f32> {
-    let w: Vector3<f32> = -(origin-e).normalize();
+    let w: Vector3<f32> = -(origin - e).normalize();
     let u: Vector3<f32> = up.cross(&w).normalize();
     let v: Vector3<f32> = w.cross(&u).normalize();
 
     let mut m: Matrix4<f32> = Matrix4::<f32>::identity();
     for i in 0..3 {
-        m[(0,i)] = u[i];
-        m[(1,i)] = v[i];
-        m[(2,i)] = w[i];
-        m[(i,3)] = -origin[i];
+        m[(0, i)] = u[i];
+        m[(1, i)] = v[i];
+        m[(2, i)] = w[i];
+        m[(i, 3)] = -origin[i];
     }
     m
 }
@@ -202,10 +207,10 @@ pub fn calc_m_viewport(width: usize, height: usize, factor: f32) -> Matrix4<f32>
     let mut m: Matrix4<f32> = Matrix4::<f32>::identity();
     m[(0, 3)] = x + w / 2.0;
     m[(1, 3)] = y + h / 2.0;
-    m[(2, 3)] = 255.0/2.0;
+    m[(2, 3)] = 255.0 / 2.0;
     m[(0, 0)] = (w - 1.0) / 2.0;
     m[(1, 1)] = (h - 1.0) / 2.0;
-    m[(2, 2)] = 255.0/2.0;
+    m[(2, 2)] = 255.0 / 2.0;
     m
 }
 

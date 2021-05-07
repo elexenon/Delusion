@@ -105,7 +105,20 @@ impl Delusion {
 
                     if hit == 0.0 {
                         continue;
-                    } else {
+                    } 
+                    else if hit == 4.0 {
+                        let weights = barycentric(&(pts[0]/pts[0][3]),&(pts[1]/pts[1][3]),
+                                                  &(pts[2]/pts[2][3]),x as f32, y as f32);
+                        let z: f32 = pts[0][2]*weights.x + pts[1][2]*weights.y + pts[2][2]*weights.z;
+                        let w: f32 = pts[0][3]*weights.x + pts[1][3]*weights.y + pts[2][3]*weights.z;
+                        let dep: f32 = (z/w+0.5).min(255.0).max(0.0);
+                        if self.get_depth(x,y)<=dep {
+                            self.set_depth(x,y,dep);
+                            self.set_color(x,y,&shader.fragment(&weights,&model));
+                        }
+                        continue;
+                    }
+                    else {
                         let mut diffuse_blend: Vector3<f32> = Default::default();
                         let mut depth_blend: f32 = 0.0;
 

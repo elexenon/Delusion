@@ -207,7 +207,7 @@ impl ShaderPayload for PhongShaderNm {
             .xyz()
             .normalize();
         let diff: f32 = n.dot(&l).max(0.0);
-        model.diffuse(&uv)*diff
+        model.diffuse(&uv) * diff
     }
 }
 impl Display for PhongShaderNm {
@@ -249,7 +249,7 @@ impl ShaderPayload for PhongShaderModel {
     fn fragment(&mut self, weights: &Vector3<f32>, model: &Objcracker) -> Vector3<f32> {
         let normal: Vector3<f32> = self.varying_normal * weights;
         let intensity: f32 = normal.dot(&self.uniform_light).max(0.0);
-        Vector3::new(255.0,255.0,255.0)*intensity
+        Vector3::new(255.0, 255.0, 255.0) * intensity
     }
 }
 impl Display for PhongShaderModel {
@@ -289,7 +289,7 @@ impl ShaderPayload for PhongShaderSpec {
         self.varying_normal
             .set_column(ivert, &model.calc_normal(iface, ivert));
         self.varying_uv
-        .set_column(ivert, &model.calc_uv(iface, ivert));
+            .set_column(ivert, &model.calc_uv(iface, ivert));
         let vt: Vector4<f32> =
             render.transform() * vec3f_to_vec4f(&model.calc_vert(iface, ivert), 1.0);
         vt
@@ -345,7 +345,7 @@ impl ShaderPayload for PhongShaderDiff {
         self.varying_normal
             .set_column(ivert, &model.calc_normal(iface, ivert));
         self.varying_uv
-        .set_column(ivert, &model.calc_uv(iface, ivert));
+            .set_column(ivert, &model.calc_uv(iface, ivert));
         let vt: Vector4<f32> =
             render.transform() * vec3f_to_vec4f(&model.calc_vert(iface, ivert), 1.0);
         vt
@@ -354,7 +354,7 @@ impl ShaderPayload for PhongShaderDiff {
         let uv: Vector2<f32> = self.varying_uv * weights;
         let normal: Vector3<f32> = self.varying_normal * weights;
         let intensity: f32 = normal.dot(&self.uniform_light).max(0.0);
-        model.diffuse(&uv)*intensity
+        model.diffuse(&uv) * intensity
     }
 }
 impl Display for PhongShaderDiff {

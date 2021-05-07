@@ -161,31 +161,27 @@ fn main() {
                     }
                     Key::I => {
                         println!("I Pressed");
-                        axis_rotate[0] -= rotate_step;
-                        m_model = graphics::calc_m_model(AXIS_X, axis_rotate[0],1.0);
+                        m_model = graphics::calc_m_model(AXIS_X, -20.0, 1.0) * d.model();
                     }
                     Key::J => {
                         println!("J Pressed");
-                        axis_rotate[1] -= rotate_step;
-                        m_model = graphics::calc_m_model(AXIS_Y, axis_rotate[1],1.0);
+                        m_model = graphics::calc_m_model(AXIS_Y, -20.0, 1.0) * d.model();
                     }
                     Key::K => {
                         println!("K Pressed");
-                        axis_rotate[0] += rotate_step;
-                        m_model = graphics::calc_m_model(AXIS_X, axis_rotate[0],1.0);
+                        m_model = graphics::calc_m_model(AXIS_X, 20.0, 1.0) * d.model();
                     }
                     Key::L => {
                         println!("L Pressed");
-                        axis_rotate[1] += rotate_step;
-                        m_model = graphics::calc_m_model(AXIS_Y, axis_rotate[1],1.0);
+                        m_model = graphics::calc_m_model(AXIS_Y, 20.0, 1.0) * d.model();
                     }
                     Key::Minus => {
                         println!("Minus Pressed");
-                        m_model = graphics::calc_m_model(AXIS_Y, 0.0, 0.8)*d.model();
+                        m_model = graphics::calc_m_model(AXIS_Y, 0.0, 0.8) * d.model();
                     }
                     Key::Equal => {
                         println!("Equal Pressed");
-                        m_model = graphics::calc_m_model(AXIS_Y, 0.0, 1.2)*d.model();
+                        m_model = graphics::calc_m_model(AXIS_Y, 0.0, 1.2) * d.model();
                     }
                     _ => (),
                 }

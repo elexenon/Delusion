@@ -167,9 +167,9 @@ pub fn calc_m_model(axis: Vector3<f32>, angle: f32, scale: f32) -> Matrix4<f32> 
     let m_rotate = Matrix4::from_axis_angle(&axis_unit, degree_to_radian(angle));
     let mut m_scale = Matrix4::<f32>::identity();
     for i in 0..2 {
-        m_scale[(i,i)] = scale;
+        m_scale[(i, i)] = scale;
     }
-    m_rotate*m_scale
+    m_rotate * m_scale
 }
 
 /////////////////////////////////////////////////////////////////////////////////

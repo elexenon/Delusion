@@ -1,6 +1,6 @@
 extern crate nalgebra as na;
 
-use image::{io::Reader, DynamicImage, GenericImageView, ImageBuffer, RgbImage};
+use image::{DynamicImage, GenericImageView};
 use na::{Vector2, Vector3};
 use std::{
     fs::File,

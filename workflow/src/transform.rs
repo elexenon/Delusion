@@ -1,4 +1,4 @@
-use nalgebra::{Matrix2, Matrix3, Matrix4, Vector2, Vector3, Vector4};
+use nalgebra::{Matrix2, Vector2, Vector3, Vector4};
 
 /////////////////////////////////////////////////////////////////////////////////
 

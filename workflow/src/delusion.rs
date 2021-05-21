@@ -1,8 +1,9 @@
+use nalgebra::{Matrix2, Matrix4, Vector2, Vector3, Vector4};
+
 use crate::graphics;
 use crate::graphics::*;
-use crate::shader::ShaderPayload;
 use crate::Objcracker;
-use nalgebra::{Matrix2, Matrix4, Vector2, Vector3, Vector4};
+use crate::shader::ShaderPayload;
 
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -37,10 +38,10 @@ impl Delusion {
         }
     }
 
-    pub fn rasterize_tri<T: ShaderPayload>(
+    pub fn rasterize_tri(
         &mut self,
         pts: &Vector3<Vector4<f32>>,
-        shader: &mut T,
+        shader: &mut Box<dyn ShaderPayload>,
         model: &Objcracker,
     ) {
         let mut bboxmin: [f32; 2] = [f32::MAX, f32::MAX];

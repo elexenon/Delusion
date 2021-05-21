@@ -3,19 +3,21 @@ extern crate minifb;
 extern crate nalgebra as na;
 extern crate objcracker;
 
+use std::{env, time::SystemTime};
+
+use minifb::{Key, Window, WindowOptions};
+use na::{Matrix4, Vector3, Vector4};
+
+use crate::graphics::MsaaOptions;
+use crate::objcracker::Objcracker;
+use crate::shader::*;
+use crate::transform::*;
+
 mod delusion;
 mod graphics;
 mod primitives;
 mod shader;
 mod transform;
-
-use crate::objcracker::Objcracker;
-use crate::shader::ShaderPayload;
-
-use crate::graphics::MsaaOptions;
-use minifb::{Key, Window, WindowOptions};
-use na::{Matrix4, Vector3, Vector4};
-use std::{env, time::SystemTime};
 
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -51,15 +53,11 @@ fn main() {
 
     /////////////////////////////////////////////////////////////////////////////////
 
-    let mut light: Vector3<f32> = Vector3::new(1.0, 1.0, 1.0).normalize();
+    let mut light: Vector3<f32> = Vector3::new(0.0, 1.0, 1.0).normalize();
     let mut eye: Vector3<f32> = Vector3::new(0.0, 1.0, 3.0);
     let mut clear_color: Vector3<f32> = WHITE_COLOR;
 
     let mut m_model: Matrix4<f32> = Matrix4::<f32>::identity();
-    let mut axis_rotate: [f32; 2] = [0.0; 2];
-    let mut scale: [f32; 2] = [0.0; 2];
-    let rotate_step: f32 = 25.0;
-    let scale_step: f32 = 0.2;
 
     /////////////////////////////////////////////////////////////////////////////////
 
@@ -72,10 +70,10 @@ fn main() {
 
     let m = d.projection() * d.camera();
     let mit = m.try_inverse().unwrap().transpose();
-    //let mut shader = shader::PhongShaderNm::new(&m,&mit);
+    let mut shader: Box<dyn ShaderPayload> = Box::new(shader::PhongShaderNmSpec::new(&m, &mit));
     //let mut shader = shader::PhongShaderNmSpec::new(&m,&mit);
     //let mut shader = shader::PhongShaderModel::new();
-    let mut shader = shader::PhongShaderSpec::new(&m);
+    //let mut shader = shader::PhongShaderSpec::new(&m);
     //let mut shader = shader::PhongShaderDiff::new();
 
     /////////////////////////////////////////////////////////////////////////////////
@@ -112,6 +110,38 @@ fn main() {
         window.get_keys_released().map(|keys| {
             for t in keys {
                 match t {
+                    Key::Key1 => {
+                        println!("1 Pressed");
+                        shader = Box::new(WeirdShader::new());
+                    }
+                    Key::Key2 => {
+                        println!("2 Pressed");
+                        shader = Box::new(PhongShaderModel::new());
+                    }
+                    Key::Key3 => {
+                        println!("3 Pressed");
+                        shader = Box::new(GouraudShader::new());
+                    }
+                    Key::Key4 => {
+                        shader = Box::new(PhongShaderDiff::new());
+                        println!("4 Pressed");
+                    }
+                    Key::Key5 => {
+                        shader = Box::new(PhongShaderNm::new(&m, &mit));
+                        println!("5 Pressed");
+                    }
+                    Key::Key6 => {
+                        shader = Box::new(PhongShaderSpec::new(&m));
+                        println!("6 Pressed");
+                    }
+                    Key::Key7 => {
+                        shader = Box::new(PhongShaderNmSpec::new(&m, &mit));
+                        println!("7 Pressed");
+                    }
+                    Key::Key8 => {
+                        shader = Box::new(DepthShader::new());
+                        println!("8 Pressed");
+                    }
                     Key::Left => {
                         println!("Left Pressed");
                         eye.x = eye.x - 0.8;
@@ -130,11 +160,11 @@ fn main() {
                     }
                     Key::A => {
                         println!("W Pressed");
-                        light.x = light.x - 0.5;
+                        light = (graphics::calc_m_model(AXIS_Y, -20.0, 1.0) * vec3f_to_vec4f(&light, 1.0)).xyz();
                     }
                     Key::D => {
                         println!("Right Pressed");
-                        light.x = light.x + 0.5;
+                        light = (graphics::calc_m_model(AXIS_Y, 20.0, 1.0) * vec3f_to_vec4f(&light, 1.0)).xyz();
                     }
                     Key::W => {
                         println!("Up Pressed");
@@ -191,12 +221,11 @@ fn main() {
             .update_with_buffer(d.get_frame_buff(), WIDTH, HEIGHT)
             .unwrap();
         window.set_title(&format!(
-            "{}MSAA  {} - 帧时间:{}ms/{}fps  着色器:{}",
+            "{}MSAA  {} - 帧时间:{}ms/{}fps",
             d.msaa_status(),
             TITLE,
             frame_time,
-            1000 / frame_time,
-            shader
+            1000 / frame_time
         ));
     }
 }

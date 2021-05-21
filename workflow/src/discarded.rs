@@ -1,41 +1,44 @@
 //////////// main.rs
-// fn construct_viewport_matrix(factor: f32) -> Matrix4<f32> {
+#[allow(dead_code)]
+fn construct_viewport_matrix(factor: f32) -> Matrix4<f32> {
+    let x = (WIDTH as f32 - WIDTH as f32 * factor) / 2.0;
+    let y = (HEIGHT as f32 - HEIGHT as f32 * factor) / 2.0;
+    let w = WIDTH as f32 * factor;
+    let h = HEIGHT as f32 * factor;
+
+    let mut matrix = Matrix4::<f32>::identity();
+    matrix[(0, 3)] = x + w / 2.0;
+    matrix[(1, 3)] = y + h / 2.0;
+    matrix[(2, 3)] = DEPTH as f32 / 2.0;
+
+    matrix[(0, 0)] = w / 2.0;
+    matrix[(1, 1)] = h / 2.0;
+    matrix[(2, 2)] = DEPTH as f32 / 2.0;
+    matrix
+}
+
 //
-//     let x = (WIDTH  as f32 - WIDTH  as f32 * factor)/2.0;
-//     let y = (HEIGHT as f32 - HEIGHT as f32 * factor)/2.0;
-//     let w = WIDTH  as f32 * factor;
-//     let h = HEIGHT as f32 * factor;
+#[allow(dead_code)]
+fn construct_projection_matrix(camera: Vector3<f32>, origin: Vector3<f32>) -> Matrix4<f32> {
+    let mut matrix = Matrix4::<f32>::identity();
+    matrix[(3, 2)] = -1.0 / (camera - origin).norm();
+    matrix
+}
+
 //
-//     let mut matrix = Matrix4::<f32>::identity();
-//     matrix[(0,3)] = x+w/2.0;
-//     matrix[(1,3)] = y+h/2.0;
-//     matrix[(2,3)] = DEPTH as f32/2.0;
-//
-//     matrix[(0,0)] = w/2.0;
-//     matrix[(1,1)] = h/2.0;
-//     matrix[(2,2)] = DEPTH as f32/2.0;
-//     matrix
-// }
-//
-// fn construct_projection_matrix(camera: Vector3<f32>, origin: Vector3<f32>) -> Matrix4<f32> {
-//     let mut matrix = Matrix4::<f32>::identity();
-//     matrix[(3,2)] = -1.0/(camera-origin).norm();
-//     matrix
-// }
-//
-// fn construct_modelview_matrix(camera: Vector3<f32>, up: Vector3<f32>, origin: Vector3<f32>) -> Matrix4<f32> {
-//     let z: Vector3<f32> = (camera-origin).normalize();
-//     let x: Vector3<f32> = up.cross(&z).normalize();
-//     let y: Vector3<f32> = z.cross(&x).normalize();
-//     let mut matrix: Matrix4<f32> = Matrix4::<f32>::identity();
-//     for i in 0..3 as usize {
-//         matrix[(0, i)] = x[i];
-//         matrix[(1, i)] = y[i];
-//         matrix[(2, i)] = z[i];
-//         matrix[(i, 3)] = -origin[i];
-//     }
-//     matrix
-// }
+fn construct_modelview_matrix(camera: Vector3<f32>, up: Vector3<f32>, origin: Vector3<f32>) -> Matrix4<f32> {
+    let z: Vector3<f32> = (camera - origin).normalize();
+    let x: Vector3<f32> = up.cross(&z).normalize();
+    let y: Vector3<f32> = z.cross(&x).normalize();
+    let mut matrix: Matrix4<f32> = Matrix4::<f32>::identity();
+    for i in 0..3 as usize {
+        matrix[(0, i)] = x[i];
+        matrix[(1, i)] = y[i];
+        matrix[(2, i)] = z[i];
+        matrix[(i, 3)] = -origin[i];
+    }
+    matrix
+}
 //////////// main.rs
 /////////// 扫描线光栅化法
 // let mut triangle = primitives::Triangle::new();

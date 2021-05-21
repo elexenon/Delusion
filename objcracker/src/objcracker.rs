@@ -1,11 +1,12 @@
 extern crate nalgebra as na;
 
-use image::{DynamicImage, GenericImageView};
-use na::{Vector2, Vector3};
 use std::{
     fs::File,
-    io::{prelude::*, BufReader},
+    io::{BufReader, prelude::*},
 };
+
+use image::{DynamicImage, GenericImageView};
+use na::{Vector2, Vector3};
 
 /////////////////////////////////////////////////////////////////////////////////
 

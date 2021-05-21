@@ -1,6 +1,8 @@
-use crate::transform::*;
-use nalgebra::{Matrix2, Matrix4, Unit, Vector2, Vector3, Vector4};
 use std::fmt::{Display, Error, Formatter};
+
+use nalgebra::{Matrix2, Matrix4, Unit, Vector2, Vector3, Vector4};
+
+use crate::transform::*;
 
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -21,6 +23,7 @@ pub struct MsaaTensor {
     dept: Vector4<f32>,
     colo: Vector4<Vector3<f32>>,
 }
+
 impl MsaaTensor {
     pub fn new() -> MsaaTensor {
         MsaaTensor {
@@ -92,6 +95,7 @@ pub enum MsaaOptions {
     Disable,
     X4,
 }
+
 impl Display for MsaaOptions {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         let mut info: &str = "";

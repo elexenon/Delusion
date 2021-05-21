@@ -1,9 +1,11 @@
-use crate::delusion::Delusion;
-use crate::transform::*;
+use std::fmt::{Display, Error, Formatter};
+
 use nalgebra::{Matrix2x3, Matrix3, Matrix4, Vector2, Vector3, Vector4};
+
 use objcracker::Objcracker;
 
-use std::fmt::{Display, Error, Formatter};
+use crate::delusion::Delusion;
+use crate::transform::*;
 
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -25,6 +27,7 @@ pub struct GouraudShader {
     varying_intensity: Vector3<f32>,
     varying_uv: Matrix2x3<f32>,
 }
+
 impl GouraudShader {
     pub fn new() -> GouraudShader {
         GouraudShader {
@@ -33,6 +36,7 @@ impl GouraudShader {
         }
     }
 }
+
 impl ShaderPayload for GouraudShader {
     fn vertex(
         &mut self,
@@ -55,6 +59,7 @@ impl ShaderPayload for GouraudShader {
         model.diffuse(&uv) * intensity
     }
 }
+
 impl Display for GouraudShader {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "Gouraud_Shader::with texture")
@@ -66,6 +71,7 @@ impl Display for GouraudShader {
 pub struct WeirdShader {
     varying_intensity: Vector3<f32>,
 }
+
 impl WeirdShader {
     pub fn new() -> WeirdShader {
         WeirdShader {
@@ -73,6 +79,7 @@ impl WeirdShader {
         }
     }
 }
+
 impl ShaderPayload for WeirdShader {
     fn vertex(
         &mut self,
@@ -100,6 +107,7 @@ impl ShaderPayload for WeirdShader {
         Vector3::new(79.0, 147.0, 184.0) * intensity
     }
 }
+
 impl Display for WeirdShader {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "Weird_Shader::without texture")
@@ -114,6 +122,7 @@ pub struct PhongShaderNmSpec {
     uniform_m: Matrix4<f32>,
     uniform_mit: Matrix4<f32>,
 }
+
 impl PhongShaderNmSpec {
     pub fn new(m: &Matrix4<f32>, mit: &Matrix4<f32>) -> PhongShaderNmSpec {
         PhongShaderNmSpec {
@@ -124,6 +133,7 @@ impl PhongShaderNmSpec {
         }
     }
 }
+
 impl ShaderPayload for PhongShaderNmSpec {
     fn vertex(
         &mut self,
@@ -158,6 +168,7 @@ impl ShaderPayload for PhongShaderNmSpec {
         color
     }
 }
+
 impl Display for PhongShaderNmSpec {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "Phong_Shader::with normal/specular mapping")
@@ -172,6 +183,7 @@ pub struct PhongShaderNm {
     uniform_m: Matrix4<f32>,
     uniform_mit: Matrix4<f32>,
 }
+
 impl PhongShaderNm {
     pub fn new(m: &Matrix4<f32>, mit: &Matrix4<f32>) -> PhongShaderNm {
         PhongShaderNm {
@@ -182,6 +194,7 @@ impl PhongShaderNm {
         }
     }
 }
+
 impl ShaderPayload for PhongShaderNm {
     fn vertex(
         &mut self,
@@ -210,6 +223,7 @@ impl ShaderPayload for PhongShaderNm {
         model.diffuse(&uv) * diff
     }
 }
+
 impl Display for PhongShaderNm {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "Phong_Shader::with normal mapping")
@@ -222,6 +236,7 @@ pub struct PhongShaderModel {
     varying_normal: Matrix3<f32>,
     uniform_light: Vector3<f32>,
 }
+
 impl PhongShaderModel {
     pub fn new() -> PhongShaderModel {
         PhongShaderModel {
@@ -230,6 +245,7 @@ impl PhongShaderModel {
         }
     }
 }
+
 impl ShaderPayload for PhongShaderModel {
     fn vertex(
         &mut self,
@@ -252,6 +268,7 @@ impl ShaderPayload for PhongShaderModel {
         Vector3::new(255.0, 255.0, 255.0) * intensity
     }
 }
+
 impl Display for PhongShaderModel {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "Phong_Shader:::model mode")
@@ -266,6 +283,7 @@ pub struct PhongShaderSpec {
     varying_uv: Matrix2x3<f32>,
     uniform_m: Matrix4<f32>,
 }
+
 impl PhongShaderSpec {
     pub fn new(m: &Matrix4<f32>) -> PhongShaderSpec {
         PhongShaderSpec {
@@ -276,6 +294,7 @@ impl PhongShaderSpec {
         }
     }
 }
+
 impl ShaderPayload for PhongShaderSpec {
     fn vertex(
         &mut self,
@@ -310,6 +329,7 @@ impl ShaderPayload for PhongShaderSpec {
         color
     }
 }
+
 impl Display for PhongShaderSpec {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "Phong_Shader::with specular mapping.")
@@ -323,6 +343,7 @@ pub struct PhongShaderDiff {
     uniform_light: Vector3<f32>,
     varying_uv: Matrix2x3<f32>,
 }
+
 impl PhongShaderDiff {
     pub fn new() -> PhongShaderDiff {
         PhongShaderDiff {
@@ -332,6 +353,7 @@ impl PhongShaderDiff {
         }
     }
 }
+
 impl ShaderPayload for PhongShaderDiff {
     fn vertex(
         &mut self,
@@ -357,8 +379,49 @@ impl ShaderPayload for PhongShaderDiff {
         model.diffuse(&uv) * intensity
     }
 }
+
 impl Display for PhongShaderDiff {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "Phong_Shader:::diffuse mapping")
+    }
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+
+pub struct DepthShader {
+    varying_tri: Matrix3<f32>,
+}
+
+impl DepthShader {
+    pub fn new() -> DepthShader {
+        DepthShader {
+            varying_tri: Default::default(),
+        }
+    }
+}
+
+impl ShaderPayload for DepthShader {
+    fn vertex(
+        &mut self,
+        iface: usize,
+        ivert: usize,
+        light: &Vector3<f32>,
+        model: &Objcracker,
+        render: &Delusion,
+    ) -> Vector4<f32> {
+        let vt: Vector4<f32> =
+            render.transform() * vec3f_to_vec4f(&model.calc_vert(iface, ivert), 1.0);
+        self.varying_tri.set_column(ivert, &(vt / vt[3]).xyz());
+        vt
+    }
+    fn fragment(&mut self, weights: &Vector3<f32>, model: &Objcracker) -> Vector3<f32> {
+        let p: Vector3<f32> = self.varying_tri * weights;
+        Vector3::new(255.0, 255.0, 255.0) * (p.z / 255.0)
+    }
+}
+
+impl Display for DepthShader {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "Depth_Shader")
     }
 }
